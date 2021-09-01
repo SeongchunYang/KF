@@ -20,7 +20,9 @@ Python=3.9
 
 > A UKF paper widely cited (the thesis by R. van der Merwe)
 
-  >> https://www.seas.harvard.edu/courses/cs281/papers/unscented.pdf
+  >> [simpler](https://www.seas.harvard.edu/courses/cs281/papers/unscented.pdf "simpler")
+  
+  >> [original](https://scholararchive.ohsu.edu/downloads/rf55z768s?locale=en "original")
 
 > Conference paper on UKF by R. van der Merwe
 
