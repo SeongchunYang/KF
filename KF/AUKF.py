@@ -40,8 +40,8 @@ class adaptiveUKF(UnscentedKalmanFilter):
         points_fn,
         Q, 
         R, 
-        fading_memory = False,
-        alpha_sq = 1.01
+        fading_memory = None,
+        alpha_sq = None
         ):
         super().__init__(dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R, fading_memory, alpha_sq)
         self.n                  =   n

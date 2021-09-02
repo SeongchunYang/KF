@@ -62,7 +62,7 @@ class stateUKF(UnscentedKalmanFilter):
             # ---------------------------
             self.update(
                 x = x1,
-                **kwargs
+                **{**kwargs,'past_p':p0}
             )
         except:
             print('Initial parameter adjustment in state filter failed.')
@@ -93,7 +93,7 @@ class stateUKF(UnscentedKalmanFilter):
             # ---------------------------
             self.update(
                 x = x,
-                **kwargs
+                **{**kwargs,'past_p':past_p}
             )
             
             ## save
@@ -158,7 +158,9 @@ class parameterUKF(UnscentedKalmanFilter):
         try:
             ## predict
             # ---------------------------
-            self.predict()
+            self.predict(
+                **{**kwargs,'past_z':z0}
+            )
             
             ## update
             # ---------------------------
@@ -186,7 +188,9 @@ class parameterUKF(UnscentedKalmanFilter):
         try:
             ## predict
             # ---------------------------
-            self.predict()
+            self.predict(
+                **{**kwargs,'past_z':past_z}
+            )
             
             ## update
             # ---------------------------
@@ -268,6 +272,7 @@ class DualUKF(object):
             Q           =   s_Q,
             R           =   s_R
         )
+        self.sUKF.z_updated = s_z0
         # Initiate - Parameter Filter
         self.pUKF = parameterUKF(
             n           =   n,
@@ -281,8 +286,9 @@ class DualUKF(object):
             Q           =   p_Q,
             R           =   p_R
         )
+        self.pUKF.z_updated = p_z0
     
-    def reparameterization(self, x1, **kwargs):
+    def reparameterization(self, x1, m1 = None, **kwargs):
         '''
         (OPTIONAL)
         Find the optimal initialization point for both of the filters.
@@ -297,33 +303,45 @@ class DualUKF(object):
             guess of first parameter value
         '''
         # we save the past values of each filter
-        past_z = np.copy(self.sUKF.z)
-        past_p = np.copy(self.pUKF.z)
+        past_z = np.copy(self.sUKF.z_updated)
+        past_p = np.copy(self.pUKF.z_updated)
 
         # Find the optimal starting point
         self.sUKF.reparameterization(
             x1 = x1,
             p0 = past_p,
-            **kwargs
+            **{**kwargs,'m':m1}
         )
         self.pUKF.reparameterization(
             x1 = x1,
             z0 = past_z,
-            **kwargs
+            **{**kwargs,'m':m1}
         )
 
-    def main(self, xs, **kwargs):
+    def main(self, xs, ms = None, **kwargs):
         '''
         Run all iterations for DUKF
         Parameters
         ----------
         xs  :   array_like
             example shape = (# of time steps, # of observations/sensor readings)
+        ms  :   array_like
+            Other inputs incorporated into kwargs for each iteration
+            2D shape for iteration purposes when being provided here.
+            The actual input shape for iterations will be flattend.
+            As fx,hx and other functions rely on minimial explicit inputs but on kwargs,
+            ms is allowed here as an explicit mention such that kwargs can recognize it and users
+            can freely modifiy it in fx and hx.
+
         '''
         for i in range(xs.shape[0]):
             # we save the past values of each filter
-            past_z = np.copy(self.sUKF.z)
-            past_p = np.copy(self.pUKF.z)
+            past_z = np.copy(self.sUKF.z_updated)
+            past_p = np.copy(self.pUKF.z_updated)
             # main
-            self.sUKF.iteration(i,xs[i,:],past_p,**kwargs)
-            self.pUKF.iteration(i,xs[i,:],past_z,**kwargs)
+            if ms is not None:
+                self.sUKF.iteration(i,xs[i,:],past_p,**{**kwargs,'m':ms[i,:]})
+                self.pUKF.iteration(i,xs[i,:],past_z,**{**kwargs,'m':ms[i,:]})
+            else:
+                self.sUKF.iteration(i,xs[i,:],past_p,**kwargs)
+                self.pUKF.iteration(i,xs[i,:],past_z,**kwargs)
