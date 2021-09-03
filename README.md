@@ -1,5 +1,8 @@
 # Kalman filters
 
+![title](https://user-images.githubusercontent.com/35414366/131958178-cc974171-5df1-49f7-99a7-95cfe2e11c52.png)
+
+
 This repository contains many trials of the author's attempt at coding Kalman filter applications that are not easily attainable elsewhere.
 
 The codes are **NOT** meant to be mathematically bulletproof; in fact, some of the examples such as adaptive filters were chosen specifically for readability and ease of use.
@@ -8,37 +11,35 @@ The codes are **NOT** meant to be mathematically bulletproof; in fact, some of t
 
 However, they are not written willy-nilly. Citations are wirtten in the scripts where necessary to justify why it was chosen and where the formulations come from.
 
-Note that the base *UKF.py* script was heavily adapted from GitHub profile rlabbe, for whose work can be found at [here](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python "here").
+Note that the base <code>UKF.py</code> script was heavily adapted from GitHub profile rlabbe, for whose work can be found at [here](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python "here").
+
+
 
 ## System Requirements
 
 Tested on MacBook Pro 16inch (2019), Intel version. Each runs of filters should take no more than a few dozen seconds at most.
 
-Python=3.9
+Conda environment .yml is provided directly in the repo. Create an environment in your machine by the following line in the terminal.
+
+<code> conda env create -n environment_name -f KF.yml </code>
 
 ## References
 
-> A UKF paper widely cited (the thesis by R. van der Merwe)
+[1] E. A. Wan and R. V. D. Merwe, “The unscented Kalman filter for nonlinear estimation,” in Proceedings of the IEEE 2000 Adaptive Systems for Signal Processing, Communications, and Control Symposium (Cat. No.00EX373), Oct. 2000, pp. 153–158. https://doi.org/10.1109/ASSPCC.2000.882463.
 
-  >> [simpler](https://www.seas.harvard.edu/courses/cs281/papers/unscented.pdf "simpler")
-  
-  >> [original](https://scholararchive.ohsu.edu/downloads/rf55z768s?locale=en "original")
+> A UKF paper widely cited. The full PhD thesis by R. van der Merwe can be found [here](https://scholararchive.ohsu.edu/downloads/rf55z768s?locale=en "original")
 
-> Conference paper on UKF by R. van der Merwe
+[2] Mehra, R. “Approaches to Adaptive Filtering.” IEEE Transactions on Automatic Control 17, no. 5 (October 1972): 693–98. https://doi.org/10.1109/TAC.1972.1100100.
 
-  >> Wan, E. A., and R. Van Der Merwe. “The Unscented Kalman Filter for Nonlinear Estimation.” In Proceedings of the IEEE 2000 Adaptive Systems for Signal Processing, Communications, and Control Symposium (Cat. No.00EX373), 153–58, 2000. https://doi.org/10.1109/ASSPCC.2000.882463.
+> A genealogical review of adaptive Kalman filters.
 
-> Genealogical review of adaptive Kalman filters
-
-  >> Mehra, R. “Approaches to Adaptive Filtering.” IEEE Transactions on Automatic Control 17, no. 5 (October 1972): 693–98. https://doi.org/10.1109/TAC.1972.1100100.
+[3] Zheng, Binqi, Pengcheng Fu, Baoqing Li, and Xiaobing Yuan. “A Robust Adaptive Unscented Kalman Filter for Nonlinear Estimation with Uncertain Noise Covariance.” Sensors (Basel, Switzerland) 18, no. 3 (March 7, 2018). https://doi.org/10.3390/s18030808.
 
 > Dual Adaptive Unscented Kalman filter implementation found in this repo.
 
-  >> Zheng, Binqi, Pengcheng Fu, Baoqing Li, and Xiaobing Yuan. “A Robust Adaptive Unscented Kalman Filter for Nonlinear Estimation with Uncertain Noise Covariance.” Sensors (Basel, Switzerland) 18, no. 3 (March 7, 2018). https://doi.org/10.3390/s18030808.
+[4] Hou, Jing, Yan Yang, He He, and Tian Gao. “Adaptive Dual Extended Kalman Filter Based on Variational Bayesian Approximation for Joint Estimation of Lithium-Ion Battery State of Charge and Model Parameters.” Applied Sciences 9, no. 9 (January 2019): 1726. https://doi.org/10.3390/app9091726.
 
 > Closely related Dual Adaptive Unscented Kalman filter using hyperparameter to adjust measurement noise.
-
-  >> Hou, Jing, Yan Yang, He He, and Tian Gao. “Adaptive Dual Extended Kalman Filter Based on Variational Bayesian Approximation for Joint Estimation of Lithium-Ion Battery State of Charge and Model Parameters.” Applied Sciences 9, no. 9 (January 2019): 1726. https://doi.org/10.3390/app9091726.
 
 
 
