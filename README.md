@@ -21,7 +21,7 @@ Tested on MacBook Pro 16inch (2019), Intel version. Each runs of filters should 
 
 Conda environment .yml is provided directly in the repo. Create an environment in your machine by the following line in the terminal.
 
-<code> conda env create -n environment_name -f KF.yml </code>
+<code> conda env create -n environment_name -f environment.yml </code>
 
 ## References
 
