@@ -27,7 +27,7 @@ Conda environment .yml is provided directly in the repo. Create an environment i
 
 [1] E. A. Wan and R. V. D. Merwe, “The unscented Kalman filter for nonlinear estimation,” in Proceedings of the IEEE 2000 Adaptive Systems for Signal Processing, Communications, and Control Symposium (Cat. No.00EX373), Oct. 2000, pp. 153–158. https://doi.org/10.1109/ASSPCC.2000.882463.
 
-> A UKF paper widely cited. The full PhD thesis by R. van der Merwe can be found [here](https://scholararchive.ohsu.edu/downloads/rf55z768s?locale=en "original")
+> An UKF paper widely cited. The full PhD thesis by R. van der Merwe can be found [here](https://scholararchive.ohsu.edu/downloads/rf55z768s?locale=en "original")
 
 [2] Mehra, R. “Approaches to Adaptive Filtering.” IEEE Transactions on Automatic Control 17, no. 5 (October 1972): 693–98. https://doi.org/10.1109/TAC.1972.1100100.
 
