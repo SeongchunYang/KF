@@ -1,0 +1,14 @@
+name: KF
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.9
+  - scipy
+  - matplotlib
+  - numpy
+  - filterpy
+  - ipykernel
+prefix: /Users/seongchunyang/miniconda3/envs/KF
+
