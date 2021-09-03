@@ -17,7 +17,7 @@ Note that the base <code>UKF.py</code> script was heavily adapted from GitHub pr
 
 ## System Requirements
 
-Tested on MacBook Pro 16inch (2019), Intel version. Each runs of filters should take no more than a few dozen seconds at most.
+Tested on MacBook Pro 16inch (2019, Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz). Each runs of filters should take no more than a few dozen seconds at most.
 
 Conda environment .yml is provided directly in the repo. Create an environment in your machine by the following line in the terminal.
 
