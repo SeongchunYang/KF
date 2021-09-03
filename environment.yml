@@ -10,5 +10,4 @@ dependencies:
   - numpy
   - filterpy
   - ipykernel
-prefix: /Users/seongchunyang/miniconda3/envs/KF
 
