@@ -1,6 +1,6 @@
 # Kalman filters
 
-![title](https://user-images.githubusercontent.com/35414366/131958178-cc974171-5df1-49f7-99a7-95cfe2e11c52.png)
+![title](https://user-images.githubusercontent.com/35414366/132179092-39c96572-5c0e-4b02-85a3-2fe71d394dd8.png)
 
 
 This repository contains many trials of the author's attempt at coding Kalman filter applications that are not easily attainable elsewhere.
