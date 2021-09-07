@@ -5,15 +5,33 @@
 
 This repository contains many trials of the author's attempt at coding Kalman filter applications that are not easily attainable elsewhere.
 
-The codes are **NOT** meant to be mathematically bulletproof; in fact, some of the examples such as adaptive filters were chosen specifically for readability and ease of use.
+The applications shown in this repository are of reparameterization of initial mean and variance, dual estimation mode, and adaptive estimation of noise covariances, namely the transition noise (Q) and the measurement noise (R).
 
-(i.e., post-hoc adaptive measurement noise rather than in-trial adaptation which requires re-compute of the updated mean and variance of variables at each time iteration.)
+## Motivation
 
-However, they are not written willy-nilly. Citations are wirtten in the scripts where necessary to justify why it was chosen and where the formulations come from.
+For a Kalman filter and its relatives, the major issue that arises is effective inference on initial conditions. These initial conditions are 
 
-Note that the base <code>UKF.py</code> script was heavily adapted from GitHub profile rlabbe, for whose work can be found at [here](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python "here").
+- Initial state mean and variance
 
+- Q
 
+- R
+
+Thankfully, the formulation of inference for the prototypical Kalman filter is somewhat easier to find (see Pattern Recogntion and Machine Learning by Bishop, Ch13.3.2).
+
+However, they are not as clear-cut for Extended Kalman filter (EKF) or Unscented Kalman filter (UKF) where analytical gradient is harder to find. There also exists the need for adaptive noise estimation whether it be for real-time estimation of variables or for domain-specific purposes (e.g., a biological process which requires a more continous adaptation rather than a likelihood maximizing initial guess).
+
+## Contents
+
+Many scripts pertain to UKF, which aims to solve the issue of computing nonlinear dynamics in systems with latent (hidden) variables.
+
+Example use cases of codes are shown in folder <code>notebooks</code>, one for adaptive UKF and one for dual UKF.
+
+Both <code>/notebooks/UKF_rec.ipynb</code> and <code>/notebooks/DUKF_rec.ipynb</code> represent a particular use case for the author, and are not meant to be construed as a model solution.
+
+Two of the AUKF scripts, <code>/KF/Schwarz_AUKF.py</code> and <code>/KF/Zhang_AUKF.py</code> are either very unstable or non-functioning. It can reflect the fact that my code is bad or wrong (which isn't unlikely) or that the data isn't one the author envisioned.
+
+Also note that the base <code>UKF.py</code> script was heavily adapted from GitHub profile rlabbe, for whose work can be found at [here](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python "here").
 
 ## System Requirements
 
@@ -35,18 +53,16 @@ Conda environment .yml is provided directly in the repo. Create an environment i
 
 [3] Zheng, Binqi, Pengcheng Fu, Baoqing Li, and Xiaobing Yuan. “A Robust Adaptive Unscented Kalman Filter for Nonlinear Estimation with Uncertain Noise Covariance.” Sensors (Basel, Switzerland) 18, no. 3 (March 7, 2018). https://doi.org/10.3390/s18030808.
 
-> Dual Adaptive Unscented Kalman filter implementation found in this repo.
+> Fault-detection adaptive UKF found in this repo <code>/KF/Zheng_et_al.py</code>.
 
 [4] Hou, Jing, Yan Yang, He He, and Tian Gao. “Adaptive Dual Extended Kalman Filter Based on Variational Bayesian Approximation for Joint Estimation of Lithium-Ion Battery State of Charge and Model Parameters.” Applied Sciences 9, no. 9 (January 2019): 1726. https://doi.org/10.3390/app9091726.
 
-> Closely related Dual Adaptive Unscented Kalman filter using hyperparameter to adjust measurement noise.
+> Dual Adaptive UKF using hyperparameter to adjust R.
 
+[5] A. H. Mohamed and K. P. Schwarz, “Adaptive Kalman Filtering for INS/GPS,” Journal of Geodesy, vol. 73, no. 4, pp. 193–203, May 1999, https://doi.org/10.1007/s001900050236.
 
+> Adaptive UKF aiming to adjust both Q and R.
 
+[6] S. Zhang, “An Adaptive Unscented Kalman Filter for Dead Reckoning Systems,” in 2009 International Conference on Information Engineering and Computer Science, Dec. 2009, pp. 1–4. https://doi.org/10.1109/ICIECS.2009.5365064.
 
-
-
-
-
-
-
+> Adaptive UKF aiming to adjust both Q and R.

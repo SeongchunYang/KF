@@ -1,3 +1,10 @@
+# Author: Seongchun Yang
+# Affiliation: Kyoto University
+# ======================================================================
+# This implementation uses ./KF/AUKF.py to initialize both the state
+# and parameter filter. The user may also use this as the template to make
+# their own with the provided varieties of AUKF in this repository.
+
 import numpy as np
 from copy import copy, deepcopy
 from KF.AUKF import adaptiveUKF
@@ -19,7 +26,7 @@ class stateAdaptiveUKF(adaptiveUKF):
         fading_memory = None,
         alpha_sq = None
         ):
-        super().__init__(n, delta, dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R, fading_memory, alpha_sq)
+        super().__init__(n, delta, dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R)
         self.zs     =   np.empty([n,dim_z])
         self.xps    =   np.empty([n,dim_x])
         self.Ps     =   np.empty([n,dim_z,dim_z])
@@ -61,6 +68,7 @@ class stateAdaptiveUKF(adaptiveUKF):
                 x = x1,
                 **{**kwargs,'past_p':p0}
             )
+            self.post_update()
         except:
             print('Initial parameter adjustment in state filter failed.')
             raise
@@ -92,18 +100,19 @@ class stateAdaptiveUKF(adaptiveUKF):
                 x = x,
                 **{**kwargs,'past_p':past_p}
             )
+            self.post_update()
             
             ## save
             # ---------------------------
             # states
-            self.zs[i,:]    =   self.z_updated
-            self.xps[i,:]   =   self.xp
-            self.Ps[i,:,:]  =   self.P_updated
-            self.Pzxs[i,:,:]=   self.Pzx
-            self.Ss[i,:,:]  =   self.S
-            self.Rs[i,:,:]  =   self.R
+            self.zs[i,:]     =   self.z_c_c
+            self.xps[i,:]    =   self.x_c_p
+            self.Ps[i,:,:]   =   self.Pzz_c_c
+            self.Pzxs[i,:,:] =   self.Pzx_c_p
+            self.Ss[i,:,:]   =   self.Pxx_c_p
+            self.Rs[i,:,:]   =   self.R
             # stats
-            self.innovations[i,:]       =   self.innovation.ravel()
+            self.innovations[i,:]       =   self.innovation.flatten()
             self.log_likelihoods[i]     =   self.log_likelihood
 
             ## adapt R
@@ -126,11 +135,9 @@ class parameterAdaptiveUKF(adaptiveUKF):
         hx, 
         points_fn,
         Q, 
-        R, 
-        fading_memory = None,
-        alpha_sq = None
+        R
         ):
-        super().__init__(n, delta, dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R, fading_memory, alpha_sq)
+        super().__init__(n, delta, dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R)
         self.zs     =   np.empty([n,dim_z])
         self.xps    =   np.empty([n,dim_x])
         self.Ps     =   np.empty([n,dim_z,dim_z])
@@ -172,6 +179,7 @@ class parameterAdaptiveUKF(adaptiveUKF):
                 x = x1,
                 **{**kwargs,'past_z':z0}
             )
+            self.post_update()
         except:
             print('Initial parameter adjustment in parameter filter failed.')
             raise
@@ -202,18 +210,19 @@ class parameterAdaptiveUKF(adaptiveUKF):
                 x = x,
                 **{**kwargs,'past_z':past_z}
             )
+            self.post_update()
             
             ## save
             # ---------------------------
             # states
-            self.zs[i,:]    =   self.z_updated
-            self.xps[i,:]   =   self.xp
-            self.Ps[i,:,:]  =   self.P_updated
-            self.Pzxs[i,:,:]=   self.Pzx
-            self.Ss[i,:,:]  =   self.S
-            self.Rs[i,:,:]  =   self.R
+            self.zs[i,:]     =   self.z_c_c
+            self.xps[i,:]    =   self.x_c_p
+            self.Ps[i,:,:]   =   self.Pzz_c_c
+            self.Pzxs[i,:,:] =   self.Pzx_c_p
+            self.Ss[i,:,:]   =   self.Pxx_c_p
+            self.Rs[i,:,:]   =   self.R
             # stats
-            self.innovations[i,:]       =   self.innovation.ravel()
+            self.innovations[i,:]       =   self.innovation.flatten()
             self.log_likelihoods[i]     =   self.log_likelihood
 
             ## adapt R
@@ -283,7 +292,7 @@ class DualAdaptiveUKF(object):
             Q           =   s_Q,
             R           =   s_R
         )
-        self.sAUKF.z_updated = s_z0
+        self.sAUKF.z_c_c = s_z0
         # Initiate - Parameter Filter
         self.pAUKF = parameterAdaptiveUKF(
             n           =   n,
@@ -298,8 +307,7 @@ class DualAdaptiveUKF(object):
             Q           =   p_Q,
             R           =   p_R
         )
-        self.pAUKF.z_updated = p_z0
-    
+        self.pAUKF.z_c_c = p_z0
     def reparameterization(self, x1, m1 = None, **kwargs):
         '''
         (OPTIONAL)
@@ -315,8 +323,8 @@ class DualAdaptiveUKF(object):
             guess of first parameter value
         '''
         # we save the past values of each filter
-        past_z = np.copy(self.sAUKF.z_updated)
-        past_p = np.copy(self.pAUKF.z_updated)
+        past_z = np.copy(self.sAUKF.z_c_c)
+        past_p = np.copy(self.pAUKF.z_c_c)
 
         # Find the optimal starting point
         self.sAUKF.reparameterization(
@@ -340,8 +348,8 @@ class DualAdaptiveUKF(object):
         '''
         for i in range(xs.shape[0]):
             # we save the past values of each filter
-            past_z = np.copy(self.sAUKF.z_updated)
-            past_p = np.copy(self.pAUKF.z_updated)
+            past_z = np.copy(self.sAUKF.z_c_c)
+            past_p = np.copy(self.pAUKF.z_c_c)
             # main
             if ms is not None:
                 self.sAUKF.iteration(i,xs[i,:],past_p,**{**kwargs,'m':ms[i,:]})
