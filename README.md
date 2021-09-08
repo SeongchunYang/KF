@@ -53,16 +53,16 @@ Conda environment .yml is provided directly in the repo. Create an environment i
 
 [3] Zheng, Binqi, Pengcheng Fu, Baoqing Li, and Xiaobing Yuan. “A Robust Adaptive Unscented Kalman Filter for Nonlinear Estimation with Uncertain Noise Covariance.” Sensors (Basel, Switzerland) 18, no. 3 (March 7, 2018). https://doi.org/10.3390/s18030808.
 
-> Fault-detection adaptive UKF found in this repo <code>/KF/Zheng_et_al.py</code>.
+> A fault-detection adaptive UKF aiming to adjust both Q and R. Adjusts both Q and R if criteria is met (over chi-squared threshold). Found in this repo, <code>/KF/Zheng_et_al.py</code>.
 
 [4] Hou, Jing, Yan Yang, He He, and Tian Gao. “Adaptive Dual Extended Kalman Filter Based on Variational Bayesian Approximation for Joint Estimation of Lithium-Ion Battery State of Charge and Model Parameters.” Applied Sciences 9, no. 9 (January 2019): 1726. https://doi.org/10.3390/app9091726.
 
-> Dual Adaptive UKF using hyperparameter to adjust R.
+> A dual adaptive UKF (DAUKF) using hyperparameter to adjust R. Similar in approach to [3] but computes R as an inverse-gamma distribution with hyperparameters alpha and beta, estimated through variational bayes.
 
 [5] A. H. Mohamed and K. P. Schwarz, “Adaptive Kalman Filtering for INS/GPS,” Journal of Geodesy, vol. 73, no. 4, pp. 193–203, May 1999, https://doi.org/10.1007/s001900050236.
 
-> Adaptive UKF aiming to adjust both Q and R.
+> An adaptive Kalman filter aiming to adjust both Q and R. Uses *correction* sequences to adjust Q and residual sequences to adjust R. Q is not guaranteed to be PD, leading to instability in the filter. Found in this repo, <code>/KF/Schwarz_AUKF.py</code>. Note that the idea was adapted for use in UKF, as the author developed the algorithm for use in canonical Kalman filters. Currently non-functioning.
 
 [6] S. Zhang, “An Adaptive Unscented Kalman Filter for Dead Reckoning Systems,” in 2009 International Conference on Information Engineering and Computer Science, Dec. 2009, pp. 1–4. https://doi.org/10.1109/ICIECS.2009.5365064.
 
-> Adaptive UKF aiming to adjust both Q and R.
+> An adaptive UKF aiming to adjust both Q and R. Uses *innnovation* sequences to adjust both Q and R. Both Q and R are not guaranteed to be PD, leading to instability in the filter. Degree to which adaptation occurs is adjusted based on the number of iteration through forgetting scale. Assumes that nonlinearity isn't well captured through EKF or UKF, requiring the filter to adjust more aggressively. The idea is similar to usage of fading memory in typical application of Kalman filters. Found in this repo, <code>/KF/Zhang_AUKF.py</code>.
