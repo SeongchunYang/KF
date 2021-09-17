@@ -39,20 +39,20 @@ All filters are defined as classes that can be used together utilizing additions
 ```python
 	from KF.UKF import UnscentedKalmanFilter # only function that can be used as a standalone filter.
 	from KF.AUKF import AdaptiveUnscentedKalmanFilter
-	from KF.DUKF import stateUnscentedKalmanFilter, parameterUnscentedKalmanFilter
+	from KF.DKF import stateKalmanFilter, parameterKalmanFilter
 	from KF.utils import MixedClassMeta
 
 	class sAUKF(
 		UnscentedKalmanFilter,
 		AdaptiveUnscentedKalmanFilter,
-		stateUnscentedKalmanFilter,
+		stateKalmanFilter,
 		metaclass=MixedClassMeta
 		):
 		def __init__(self,*args,**kwargs): pass
 	class pAUKF(
 		UnscentedKalmanFilter,
 		AdaptiveUnscentedKalmanFilter,
-		parameterUnscentedKalmanFilter,
+		parameterKalmanFilter,
 		metaclass=MixedClassMeta
 		):
 		def __init__(self,*args,**kwargs): pass
