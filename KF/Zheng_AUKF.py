@@ -25,15 +25,32 @@
 import numpy as np
 from numpy import dot
 from copy import copy, deepcopy
-from KF.UKF import UnscentedKalmanFilter
 
-class adaptiveUKF(UnscentedKalmanFilter):
+class AdaptiveUnscentedKalmanFilter:
     '''
+    Adaptive Unscented Kalman Filter, as told by Zheng et al. (DOI:10.3390/s18030808).
+
+    Parameters
+    ----------
+    kwargs  :   dict
+        + n                 :   int
+            # of iterations
+        + chi_sq_threshold  :   float
+            chi squared threshold value.
+            Check your own data input (degree of freedom, confidence level, etc)
+        + tune0             :   float
+            Adaptation level baseline
+        + a                 :   int
+            Adaptation level
+
+    ------------------------------------------------------------------------------------
     Naming convention
+    ------------------------------------------------------------------------------------
     c              :   current
     p              :   past
     e.g., phi_c_p (predictive hidden state particle dependent on past)
-    RAUKF
+    ------------------------------------------------------------------------------------
+    Steps
     ------------------------------------------------------------------------------------
     1). psi computation (adaptation critera)
     psi         :   innovation.T * inv(Pxx_c_p) * innovation
@@ -72,25 +89,32 @@ class adaptiveUKF(UnscentedKalmanFilter):
     We still adhere to the previous convention of naming phi as sigma_f and hphi as sigma_h.
     We, however, modify sigma_h such that it shows the time index such as sigma_h_c_p.
     '''
-    def __init__(self, dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R, chi_sq_threshold = None, tune0 = None, a = None):
-        super().__init__(dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R)
-        self.chi_sq_threshold = chi_sq_threshold or 0.2110 # very wrong unless you change this yourself
-        self.tune0 = tune0 or 0.1
-        self.a = a or 5
+    def __init__(self, **kwargs):
+        for attr in ['chi_sq_threshold', 'tune0', 'a']:
+            if attr not in kwargs.keys():
+                if attr == 'chi_sq_threshold':
+                    self.chi_sq_threshold = 0.2110 # very wrong unless you change this yourself
+                if attr == 'tune0':
+                    self.tune0 = 0.1
+                if attr == 'a':
+                    self.a = 5
+            else:
+                setattr(self,attr,kwargs[attr])
+        self.n              =   kwargs['n']
+        self._adapted_idx   =   np.zeros((self.n,1),dtype=bool)
     
-    def adapt_QR(self,x,**kwargs):
+    def adapt_noise(self,x,**kwargs):
         # psi
         self.psi = dot(dot(self.innovation.reshape(1,-1), self.IPxx_c_p), self.innovation.reshape(-1,1))
         if self.psi > self.chi_sq_threshold:
             if 'i' in kwargs.keys():
+                self._adapted_idx[kwargs['i']] = 1
                 print('{}th iteration, psi threshold reached'.format(kwargs['i']))
             else:
                 print('Psi threshold reached.')
             self.tune = max(self.tune0, (self.psi - self.a * self.chi_sq_threshold)/self.psi)
             self.adaptive_QR(x,**kwargs)
             self.correct_update(x)
-        else:
-            self.post_update()
     
     def adaptive_QR(self, x, **kwargs):
         self._adaptive_Q()
@@ -149,6 +173,13 @@ class adaptiveUKF(UnscentedKalmanFilter):
         # correct-updated values
         self.z = self.z + dot(self.K, x - self.x_c_c)
         self.P = self.Pzz_c_c - dot(self.K, dot(self.Pxx_c_c, self.K.T))
-        
-        self.post_update()
-        self.compute_log_likelihood(self.innovation,self.Pxx_c_c)
+
+        # Only done in order to compute likelihood
+        self.S = self.Pxx_c_c
+
+
+    def post_update(self):
+        # distinction of being a posterior
+        self.z_c_c = np.copy(self.z)
+        self.Pzz_c_c = np.copy(self.P)
+        self.compute_likelihood(self.innovation,self.S)

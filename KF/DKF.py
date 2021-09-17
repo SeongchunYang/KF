@@ -1,42 +1,36 @@
 # Author: Seongchun Yang
 # Affiliation: Kyoto University
 # ======================================================================
-# This implementation uses ./KF/AUKF.py to initialize both the state
-# and parameter filter. The user may also use this as the template to make
-# their own with the provided varieties of AUKF in this repository.
 
 import numpy as np
 from copy import copy, deepcopy
-from KF.AUKF import adaptiveUKF
 
-class stateAdaptiveUKF(adaptiveUKF):
-    def __init__(
-        self, 
-        n,
-        delta,
-        dim_z,
-        dim_x,
-        z0,
-        P0,
-        fx, 
-        hx, 
-        points_fn,
-        Q, 
-        R, 
-        fading_memory = None,
-        alpha_sq = None
-        ):
-        super().__init__(n, delta, dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R)
-        self.zs     =   np.empty([n,dim_z])
-        self.xps    =   np.empty([n,dim_x])
-        self.Ps     =   np.empty([n,dim_z,dim_z])
-        self.Pzxs   =   np.empty([n,dim_z,dim_x])
-        self.Ss     =   np.empty([n,dim_x,dim_x])
-        self.Rs     =   np.empty([n,dim_x,dim_x])
+class stateKalmanFilter:
+    '''
+    Mixin component.
+    This is not meant as a standalone filter.
+    
+    Parameters
+    ----------
+    (If AUKF is used as its baseclass, no other attributes are required.
+     If UKF is the direct ancestor, 'n' is required.)
+    n   :   int
+        # of iterations
+    '''
+    def __init__(self, **kwargs):
+        if not hasattr(self, 'n'):
+            setattr(self, 'n', kwargs['n'])
+        self.zs     =   np.empty([self.n,self._dim_z])
+        self.xps    =   np.empty([self.n,self._dim_x])
+        self.Ps     =   np.empty([self.n,self._dim_z,self._dim_z])
+        self.Pzxs   =   np.empty([self.n,self._dim_z,self._dim_x])
+        self.Ss     =   np.empty([self.n,self._dim_x,self._dim_x])
+        self.Qs     =   np.empty([self.n,self._dim_z,self._dim_z])
+        self.Rs     =   np.empty([self.n,self._dim_x,self._dim_x])
 
         # stats
-        self.innovations     =  np.empty([n,dim_x])
-        self.log_likelihoods =  np.empty(n)
+        self.innovations     =  np.empty([self.n,self._dim_x])
+        self.log_likelihoods =  np.empty(self.n)
 
     def reparameterization(self, x1, p0, **kwargs):
         '''
@@ -68,7 +62,9 @@ class stateAdaptiveUKF(adaptiveUKF):
                 x = x1,
                 **{**kwargs,'past_p':p0}
             )
-            self.post_update()
+            self.post_update(
+                **{**kwargs,'past_p':p0}
+            )
         except:
             print('Initial parameter adjustment in state filter failed.')
             raise
@@ -100,7 +96,9 @@ class stateAdaptiveUKF(adaptiveUKF):
                 x = x,
                 **{**kwargs,'past_p':past_p}
             )
-            self.post_update()
+            self.post_update(
+                **{**kwargs,'past_p':past_p}
+            )
             
             ## save
             # ---------------------------
@@ -110,44 +108,47 @@ class stateAdaptiveUKF(adaptiveUKF):
             self.Ps[i,:,:]   =   self.Pzz_c_c
             self.Pzxs[i,:,:] =   self.Pzx_c_p
             self.Ss[i,:,:]   =   self.Pxx_c_p
+            self.Qs[i,:,:]   =   self.Q
             self.Rs[i,:,:]   =   self.R
             # stats
             self.innovations[i,:]       =   self.innovation.flatten()
             self.log_likelihoods[i]     =   self.log_likelihood
 
-            ## adapt R
+            ## adapt noise covariance
             # ---------------------------
-            self.adapt_R(i, x)
+            if hasattr(self, 'adapt_noise') and callable(self.adapt_noise):
+                self.adapt_noise(i, x, **{**kwargs,'past_p':past_p})
         except:
             print('{}th iteration in state filter threw an error.'.format(i))
             raise
 
-class parameterAdaptiveUKF(adaptiveUKF):
-    def __init__(
-        self, 
-        n,
-        delta,
-        dim_z,
-        dim_x,
-        z0,
-        P0,
-        fx, 
-        hx, 
-        points_fn,
-        Q, 
-        R
-        ):
-        super().__init__(n, delta, dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R)
-        self.zs     =   np.empty([n,dim_z])
-        self.xps    =   np.empty([n,dim_x])
-        self.Ps     =   np.empty([n,dim_z,dim_z])
-        self.Pzxs   =   np.empty([n,dim_z,dim_x])
-        self.Ss     =   np.empty([n,dim_x,dim_x])
-        self.Rs     =   np.empty([n,dim_x,dim_x])
+
+class parameterKalmanFilter:
+    def __init__(self, **kwargs):
+        '''
+        Mixin component.
+        This is not meant as a standalone filter.
+        
+        Parameters
+        ----------
+        (If AUKF is used as its baseclass, no other attributes are required.
+         If UKF is the direct ancestor, 'n' is required.)
+        n   :   int
+            # of iterations
+        '''
+        if not hasattr(self, 'n'):
+            setattr(self, 'n', kwargs['n'])
+        self.zs     =   np.empty([self.n,self._dim_z])
+        self.xps    =   np.empty([self.n,self._dim_x])
+        self.Ps     =   np.empty([self.n,self._dim_z,self._dim_z])
+        self.Pzxs   =   np.empty([self.n,self._dim_z,self._dim_x])
+        self.Ss     =   np.empty([self.n,self._dim_x,self._dim_x])
+        self.Qs     =   np.empty([self.n,self._dim_z,self._dim_z])
+        self.Rs     =   np.empty([self.n,self._dim_x,self._dim_x])
 
         # stats
-        self.innovations     =  np.empty([n,dim_x])
-        self.log_likelihoods =  np.empty(n)
+        self.innovations     =  np.empty([self.n,self._dim_x])
+        self.log_likelihoods =  np.empty(self.n)
     
     def reparameterization(self, x1, z0, **kwargs):
         '''
@@ -179,7 +180,9 @@ class parameterAdaptiveUKF(adaptiveUKF):
                 x = x1,
                 **{**kwargs,'past_z':z0}
             )
-            self.post_update()
+            self.post_update(
+                **{**kwargs,'past_z':z0}
+            )
         except:
             print('Initial parameter adjustment in parameter filter failed.')
             raise
@@ -210,7 +213,9 @@ class parameterAdaptiveUKF(adaptiveUKF):
                 x = x,
                 **{**kwargs,'past_z':past_z}
             )
-            self.post_update()
+            self.post_update(
+                **{**kwargs,'past_z':past_z}
+            )
             
             ## save
             # ---------------------------
@@ -220,94 +225,49 @@ class parameterAdaptiveUKF(adaptiveUKF):
             self.Ps[i,:,:]   =   self.Pzz_c_c
             self.Pzxs[i,:,:] =   self.Pzx_c_p
             self.Ss[i,:,:]   =   self.Pxx_c_p
+            self.Qs[i,:,:]   =   self.Q
             self.Rs[i,:,:]   =   self.R
             # stats
             self.innovations[i,:]       =   self.innovation.flatten()
             self.log_likelihoods[i]     =   self.log_likelihood
 
-            ## adapt R
+            ## adapt noise
             # ---------------------------
-            self.adapt_R(i, x, **{**kwargs,'past_z':past_z})
+            if hasattr(self, 'adapt_noise') and callable(self.adapt_noise):
+                self.adapt_noise(i, x, **{**kwargs,'past_z':past_z})
         except:
             print('{}th iteration in parameter filter threw an error.'.format(i))
             raise
 
-class DualAdaptiveUKF(object):
+class DualKalmanFilter:
     '''
-    This nested class is here for convenience. All variables will be saved automatically per filter and will be
-    accessible readily.
-    If however, nested objects are not ideal for your workflow, simply take note of the structure used and create
-    your own function, initializing both the state filter and the parameter filter.
+    More of an assortment of initiated classes than an inherited object.
+    In fact, initial parameters require one state and one parameter filter
+    pre-initialized.
+    The code is meant to be filter agnostic. As such, one can use the this
+    for a variety of filters pre-initialized for use in this class, as long
+    as the base classes use the same naming scheme.
 
-    Workflow [1] - No reparameterization
-    -----------------------------------
-    DUKF = DualUKF(*args)
-    DUKF.main(xs)
-    Workflow [2] - reparameterization
-    -----------------------------------
-    DUKF = DualUKF(*args)
-    DUKF.reparameterization(x1)
-    DUKF.main(xs)
+    Parameters
+    ----------
+    sKF     :   object
+        state filter
+    pKF     :   object
+        parameter filter
     '''
-    def __init__(
-        self, 
-        n,
-        delta,
-        s_dim_z,
-        s_dim_x,
-        s_z0,
-        s_P0,
-        s_Q,
-        s_R,
-        s_fx,
-        s_hx,
-        s_points_fn,
-        p_dim_z,
-        p_dim_x,
-        p_z0,
-        p_P0,
-        p_Q,
-        p_R,
-        p_fx,
-        p_hx,
-        p_points_fn
-        ):
-        # Force clean slate (sanitycheck)
-        if hasattr(self, 'sAUKF'):
-            delattr(self, 'sAUKF')
-        if hasattr(self, 'pAUKF'):
-            delattr(self, 'pAUKF')
-
+    def __init__(self, sKF, pKF):
+        self.sKF    =   sKF
+        self.pKF    =   pKF
+    
+    def initiate(self):
         # Initiate - State Filter
-        self.sAUKF = stateAdaptiveUKF(
-            n           =   n,
-            delta       =   delta,
-            dim_z       =   s_dim_z,
-            dim_x       =   s_dim_x,
-            z0          =   s_z0,
-            P0          =   s_P0,
-            fx          =   s_fx,
-            hx          =   s_hx,
-            points_fn   =   s_points_fn,
-            Q           =   s_Q,
-            R           =   s_R
-        )
-        self.sAUKF.z_c_c = s_z0
+        self.sKF.z_c_c = self.sKF.z
+        self.sKF.Pzz_c_c = self.sKF.P
+
         # Initiate - Parameter Filter
-        self.pAUKF = parameterAdaptiveUKF(
-            n           =   n,
-            delta       =   delta,
-            dim_z       =   p_dim_z,
-            dim_x       =   p_dim_x,
-            z0          =   p_z0,
-            P0          =   p_P0,
-            fx          =   p_fx,
-            hx          =   p_hx,
-            points_fn   =   p_points_fn,
-            Q           =   p_Q,
-            R           =   p_R
-        )
-        self.pAUKF.z_c_c = p_z0
+        self.pKF.z_c_c = self.pKF.z
+        self.pKF.Pzz_c_c = self.pKF.P
+
     def reparameterization(self, x1, m1 = None, **kwargs):
         '''
         (OPTIONAL)
@@ -317,22 +277,20 @@ class DualAdaptiveUKF(object):
         ----------
         x1  :   array_like
             first observation
-        z0  :   array_like
-            guess of first state value
-        p0  :   array_like
-            guess of first parameter value
+        m1  :   array_like
+            input
         '''
         # we save the past values of each filter
-        past_z = np.copy(self.sAUKF.z_c_c)
-        past_p = np.copy(self.pAUKF.z_c_c)
+        past_z = np.copy(self.sKF.z_c_c)
+        past_p = np.copy(self.pKF.z_c_c)
 
         # Find the optimal starting point
-        self.sAUKF.reparameterization(
+        self.sKF.reparameterization(
             x1 = x1,
             p0 = past_p,
             **{**kwargs,'m':m1}
         )
-        self.pAUKF.reparameterization(
+        self.pKF.reparameterization(
             x1 = x1,
             z0 = past_z,
             **{**kwargs,'m':m1}
@@ -344,16 +302,18 @@ class DualAdaptiveUKF(object):
         Parameters
         ----------
         xs  :   array_like
-            example shape = (# of time steps, # of observations/sensor readings)
+            shape = (# of time steps, # of observations/sensor readings)
+        ms  :   array_like
+            shape = (# of time steps, # of input classes)
         '''
         for i in range(xs.shape[0]):
             # we save the past values of each filter
-            past_z = np.copy(self.sAUKF.z_c_c)
-            past_p = np.copy(self.pAUKF.z_c_c)
+            past_z = np.copy(self.sKF.z_c_c)
+            past_p = np.copy(self.pKF.z_c_c)
             # main
             if ms is not None:
-                self.sAUKF.iteration(i,xs[i,:],past_p,**{**kwargs,'m':ms[i,:]})
-                self.pAUKF.iteration(i,xs[i,:],past_z,**{**kwargs,'m':ms[i,:]})
+                self.sKF.iteration(i,xs[i,:],past_p,**{**kwargs,'m':ms[i,:]})
+                self.pKF.iteration(i,xs[i,:],past_z,**{**kwargs,'m':ms[i,:]})
             else:
-                self.sAUKF.iteration(i,xs[i,:],past_p)
-                self.pAUKF.iteration(i,xs[i,:],past_z)
+                self.sKF.iteration(i,xs[i,:],past_p)
+                self.pKF.iteration(i,xs[i,:],past_z)

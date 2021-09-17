@@ -33,6 +33,36 @@ Two of the AUKF scripts, <code>/KF/Schwarz_AUKF.py</code> and <code>/KF/Zhang_AU
 
 Also note that the base <code>UKF.py</code> script was heavily adapted from GitHub profile rlabbe, for whose work can be found at [here](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python "here").
 
+
+All filters are defined as classes that can be used together utilizing additions as 'mixins'. Functionally, it is close to multi-inheritance and the only difference in usage, in this particular script, is to use metaclass as follows.
+
+<code>
+	from KF.UKF import UnscentedKalmanFilter # only function that can be used as a standalone filter.
+	from KF.AUKF import AdaptiveUnscentedKalmanFilter
+	from KF.DUKF import stateUnscentedKalmanFilter, parameterUnscentedKalmanFilter
+	from KF.utils import MixedClassMeta
+
+	class sAUKF(
+		UnscentedKalmanFilter,
+		AdaptiveUnscentedKalmanFilter,
+		stateUnscentedKalmanFilter,
+		metaclass=MixedClassMeta
+		):
+		def __init__(self,*args,**kwargs): pass
+	class pAUKF(
+		UnscentedKalmanFilter,
+		AdaptiveUnscentedKalmanFilter,
+		parameterUnscentedKalmanFilter,
+		metaclass=MixedClassMeta
+		):
+		def __init__(self,*args,**kwargs): pass
+	stateAUKF = sAUKF(*args,**kwargs)
+	parameterAUKF = pAUKF(*args,**kwargs)
+</code>
+
+Note that the user is free to mix and match, take out the adaptive portion or use another adaptive filter in place. The hierarchy of mixins are class(1<2<3<...). As such, variables initialized in its base are available immediately to the next.
+
+
 ## System Requirements
 
 Tested on MacBook Pro 16inch (2019, Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz). Each runs of filters should take no more than a few dozen seconds at most.

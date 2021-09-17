@@ -19,7 +19,7 @@
 import numpy as np
 from numpy import dot
 
-class UnscentedKalmanFilter(object):
+class UnscentedKalmanFilter:
     '''
     Base UKF script. For a typical run of UKF, one should do the following;
     while t < T:
@@ -33,40 +33,41 @@ class UnscentedKalmanFilter(object):
             self.post_update(i,x,**kwargs)
     Parameters
     ----------
-    dim_z       :   int
-        dimension of state vector
-    dim_x       :   int
-        dimension of observation vector
-    z0          :   array_like
-        initial state value
-        has to be an array of size 1 (i.e., np.array([1]).shape == (1,))
-    P0          :   array_like
-        initial state variance, with 2d shape (i.e., for dim_z = 1, np.atleast_2d(1))
-        has to be a 2D array
-    fx          :   function
-        state transition function
-        i.e., def fx(sigma_point, **kwargs)
-    hx          :   function
-        observation function
-        i.e., def hx(sigma_point, **kwargs)
-    points_fn   :   function
-        sigma point generator either suggested by Julier et al. or Merwe et al.
+    kwargs  :   dict
+        - dim_z       :   int
+            dimension of state vector
+        - dim_x       :   int
+            dimension of observation vector
+        - z0          :   array_like
+            initial state value
+            has to be an array of size 1 (i.e., np.array([1]).shape == (1,))
+        - P0          :   array_like
+            initial state variance, with 2d shape (i.e., for dim_z = 1, np.atleast_2d(1))
+            has to be a 2D array
+        - fx          :   function
+            state transition function
+            i.e., def fx(sigma_point, **kwargs)
+        - hx          :   function
+            observation function
+            i.e., def hx(sigma_point, **kwargs)
+        - points_fn   :   function
+            sigma point generator either suggested by Julier et al. or Merwe et al.
     '''
-    def __init__(self, dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R):
-        self._dim_z         =   dim_z
-        self._dim_x         =   dim_x
-        self.z              =   z0 
-        self.P              =   P0 
-        self.fx             =   fx 
-        self.hx             =   hx 
-        self.points_fn      =   points_fn
-        self.Wm             =   points_fn.Wm
-        self.Wc             =   points_fn.Wc
-        self._num_sigmas    =   points_fn.num_sigmas()
+    def __init__(self, **kwargs):
+        self._dim_z         =   kwargs['dim_z']
+        self._dim_x         =   kwargs['dim_x']
+        self.z              =   kwargs['z0']
+        self.P              =   kwargs['P0']
+        self.fx             =   kwargs['fx']
+        self.hx             =   kwargs['hx']
+        self.points_fn      =   kwargs['points_fn']
+        self.Wm             =   kwargs['points_fn'].Wm
+        self.Wc             =   kwargs['points_fn'].Wc
+        self._num_sigmas    =   kwargs['points_fn'].num_sigmas()
         self.sigmas_f       =   np.zeros((self._num_sigmas, self._dim_z))
         self.sigmas_h       =   np.zeros((self._num_sigmas, self._dim_x))
-        self.Q              =   Q 
-        self.R              =   R
+        self.Q              =   kwargs['Q'] 
+        self.R              =   kwargs['R']
 
     def UT(self, sigmas, Wm, Wc, noise_cov):
         kmax, n = sigmas.shape
@@ -227,7 +228,7 @@ class UnscentedKalmanFilter(object):
 
         self.compute_log_likelihood(self.innovation,self.Pxx_c_p)
 
-    def post_update(self):
+    def post_update(self, **kwargs):
         # distinction of being a posterior
         self.z_c_c = np.copy(self.z)
         self.Pzz_c_c = np.copy(self.P)    

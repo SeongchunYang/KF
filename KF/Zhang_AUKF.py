@@ -18,38 +18,41 @@
 import numpy as np
 from numpy import dot
 from copy import copy, deepcopy
-from KF.UKF import UnscentedKalmanFilter
 
-class adaptiveUKF(UnscentedKalmanFilter):
-    def __init__(
-        self, 
-        dim_z, 
-        dim_x, 
-        z0,
-        P0,
-        fx, 
-        hx, 
-        points_fn, 
-        Q, 
-        R, 
-        b
-        ):
-        super().__init__(dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R)
-        self.b = b # forgetting scale (0<b<1)
+class AdaptiveUnscentedKalmanFilter:
+    '''
+    Adaptive Unscented Kalman Filter, as told by Zhang et al. (DOI:10.1109/ICIECS.2009.5365064).
+    
+    Parameters
+    ----------
+    kwargs  :   dict
+        + b     :   float (0<b<1)
+            forgetting scale
+    '''
+    def __init__(self, **kwargs):
+        self.n = kwargs['n']
+        self.b = kwargs['b']
 
-    def adapt_QR(self, i, x, **kwargs):
+    def adapt_noise(self, i, x, **kwargs):
         '''
         As is evident, both Q and R adjustments are made using innovation.
         The formulation below makes it so that we can't sufficiently guarantee that this will be PD.
         Further adaption in future for this is required for stability.
         '''
         self.d = (1-self.b)/(1-self.b**(i+2))
+        self._adaptive_Q()
+        self._adaptive_R()
+
+
+    def _adaptive_R(self):
         self.R = self.R - self.d * (
             np.outer(
                 self.innovation, 
                 self.innovation
             ) - self.Pxx_c_p
         )
+
+    def _adaptive_Q(self):
         self.Q = self.Q + self.d * (
             np.outer(
                 dot(self.K, self.innovation),
@@ -94,8 +97,14 @@ class adaptiveUKF(UnscentedKalmanFilter):
         # update
         self.z = self.z_c_c + dot(self.K, self.innovation)
         self.P = self.Pzz_c_c - dot(self.K, dot(self.Pxx_c_c, self.K.T))
+        # purpose of computing likelihood
+        self.S = self.Pxx_c_c
 
-        self.compute_log_likelihood(self.innovation,self.Pxx_c_c)
-        self.post_update()
+    def post_update(self, **kwargs):
+        # distinction of being a posterior
+        self.z_c_c = np.copy(self.z)
+        self.Pzz_c_c = np.copy(self.P)    
+
+        self.compute_log_likelihood(self.innovation,self.S)
         
     

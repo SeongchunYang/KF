@@ -21,32 +21,32 @@
 #   *:A variation where hyperparameter is used in place describing noise as a distribution initself is also found
 
 import numpy as np
-from copy import copy
-from copy import deepcopy
-from KF.UKF import UnscentedKalmanFilter
+from copy import copy, deepcopy
 
-class adaptiveUKF(UnscentedKalmanFilter):
-    def __init__(
-        self,
-        n,
-        delta,
-        dim_z,
-        dim_x,
-        z0,
-        P0,
-        fx, 
-        hx, 
-        points_fn,
-        Q, 
-        R
-        ):
-        super().__init__(dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R)
-        self.n                  =   n
-        self.delta              =   delta
-        self.residuals          =   np.empty((n,dim_x))
-        self.residual_variances =   np.empty((n,dim_x,dim_x))
+class AdaptiveUnscentedKalmanFilter:
+    '''
+    A mixin component.
+    This is not meant as a standalone filter.
+    In order to utilize this as a full adaptive filter, do the following;
+        Example (with UKF):
+        class constructor_AUKF(UnscentedKalmanFilter,AdaptiveUnscentedKalmanFilter,metaclass=MixedClassMeta):
+            def __init__(self,*args,**kwargs): pass
+
+        AUKF = constructor_AUKF(**kwargs)
+
+    Parameters
+    ----------
+    kwargs  :   dict
+        + n    :   number of iterations
+        + delta:   adaptive rate of filter
+    '''
+    def __init__(self, **kwargs):
+        self.n                  =   kwargs['n']
+        self.delta              =   kwargs['delta']
+        self.residuals          =   np.empty((self.n,self._dim_x))
+        self.residual_variances =   np.empty((self.n,self._dim_x,self._dim_x))
     
-    def adapt_R(self, i, x, **kwargs):
+    def adapt_noise(self, i, x, **kwargs):
         '''
         Post-hoc adaptive measurement noise.
         Computes residuals which are used to construct a guaranteed positive definite matrix.

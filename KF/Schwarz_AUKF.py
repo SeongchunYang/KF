@@ -31,30 +31,31 @@
 import numpy as np
 from numpy import dot
 from copy import copy, deepcopy
-from KF.UKF import UnscentedKalmanFilter
 
-class adaptiveUKF(UnscentedKalmanFilter):
-    def __init__(
-        self, 
-        n,
-        L, # Window length
-        dim_z, 
-        dim_x,
-        z0,
-        P0,
-        fx, 
-        hx, 
-        points_fn, 
-        Q, 
-        R
-        ):
-        super().__init__(dim_z, dim_x, z0, P0, fx, hx, points_fn, Q, R)
-        self.n              =   n
-        self.L              =   L 
-        self.corrections    =   np.zeros((n,dim_z))
-        self.corrections_v  =   np.zeros((n,dim_z,dim_z))
-        self.residuals      =   np.zeros((n,dim_x))
-        self.residuals_v    =   np.zeros((n,dim_x,dim_x))
+class adaptiveUKF:
+    '''
+    A mixin component.
+    This is not meant as a standalone filter.
+    In order to utilize this as a full adaptive filter, do the following;
+        Example (with UKF):
+        class constructor_AUKF(UnscentedKalmanFilter,AdaptiveUnscentedKalmanFilter,metaclass=MixedClassMeta):
+            def __init__(self,*args,**kwargs): pass
+
+        AUKF = constructor_AUKF(**kwargs)
+    
+    Parameters
+    ----------
+    kwargs  :   dict
+        + n    :    # of iterations
+        + L    :    window length
+    '''
+    def __init__(self, **kwargs):
+        self.n              =   kwargs['n']
+        self.L              =   kwargs['L']
+        self.corrections    =   np.empty((self.n,self._dim_z))
+        self.corrections_v  =   np.empty((self.n,self._dim_z,self._dim_z))
+        self.residuals      =   np.empty((self.n,self._dim_x))
+        self.residuals_v    =   np.empty((self.n,self._dim_x,self._dim_x))
 
     def adaptive_update(self, i, x, **kwargs):
         '''
@@ -185,9 +186,6 @@ class adaptiveUKF(UnscentedKalmanFilter):
         # update final values
         self.z = z_corrected + dot(self.K, np.subtract(x, self.xp))
         self.P = P_corrected - dot(self.K, dot(self.S, self.K.T))
-
-        self.post_update() # update z_updated, P_updated and compute stats
-
         '''
         # if comparing corrections and residuals with the pre-adjustment, use this
         self._corrections[i,:] = np.subtract(self.z_updated, self.z_corrected)
