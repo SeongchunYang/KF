@@ -36,7 +36,7 @@ Also note that the base <code>UKF.py</code> script was heavily adapted from GitH
 
 All filters are defined as classes that can be used together utilizing additions as 'mixins'. Functionally, it is close to multi-inheritance and the only difference in usage, in this particular script, is to use metaclass as follows.
 
-<code>
+```python
 	from KF.UKF import UnscentedKalmanFilter # only function that can be used as a standalone filter.
 	from KF.AUKF import AdaptiveUnscentedKalmanFilter
 	from KF.DUKF import stateUnscentedKalmanFilter, parameterUnscentedKalmanFilter
@@ -58,7 +58,7 @@ All filters are defined as classes that can be used together utilizing additions
 		def __init__(self,*args,**kwargs): pass
 	stateAUKF = sAUKF(*args,**kwargs)
 	parameterAUKF = pAUKF(*args,**kwargs)
-</code>
+```
 
 Note that the user is free to mix and match, take out the adaptive portion or use another adaptive filter in place. The hierarchy of mixins are class(1<2<3<...). As such, variables initialized in its base are available immediately to the next.
 
