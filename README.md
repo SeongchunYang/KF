@@ -34,7 +34,7 @@ Two of the AUKF scripts, <code>/KF/Schwarz_AUKF.py</code> and <code>/KF/Zhang_AU
 Also note that the base <code>UKF.py</code> script was heavily adapted from GitHub profile rlabbe, for whose work can be found at [here](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python "here").
 
 
-All filters are defined as classes that can be used together utilizing additions as 'mixins'. Functionally, it is close to multi-inheritance and the only difference in usage, in this particular script, is to use metaclass as follows.
+All filters are defined as classes that can be used together utilizing additions as *mixins*. Functionally, it is quite similar to multi-inheritance. It is however different in that mixins are not meant to be initialized independently as a standalone class.
 
 ```python
 	from KF.UKF import UnscentedKalmanFilter # only function that can be used as a standalone filter.
@@ -60,7 +60,7 @@ All filters are defined as classes that can be used together utilizing additions
 	parameterAUKF = pAUKF(*args,**kwargs)
 ```
 
-Note that the user is free to mix and match, take out the adaptive portion or use another adaptive filter in place. The hierarchy of mixins are class(1<2<3<...). As such, variables initialized in its base are available immediately to the next.
+Note that the user is free to mix and match, take out the adaptive portion or use another adaptive filter in place. As can be seen in the above code, <code>UnscentedKalmanFilter</code> is the only base class that can be initialized as a standalone filter. The hierarchy of mixins are <code>class(1<2<3<...)</code>. As such, variables initialized in its base are available immediately to the next.
 
 
 ## System Requirements
