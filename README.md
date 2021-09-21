@@ -27,7 +27,7 @@ Many scripts pertain to UKF, which aims to solve the issue of computing nonlinea
 
 Example use cases of codes are shown in folder <code>notebooks</code>, one for adaptive UKF and one for dual UKF.
 
-Both <code>/notebooks/UKF_rec.ipynb</code> and <code>/notebooks/DUKF_rec.ipynb</code> represent a particular use case for the author, and are not meant to be construed as a model solution.
+Both <code>/notebooks/UKF_example.ipynb</code> and <code>/notebooks/DUKF_example.ipynb</code> represent a particular use case for the author, and are not meant to be construed as a model solution.
 
 Two of the AUKF scripts, <code>/KF/Schwarz_AUKF.py</code> and <code>/KF/Zhang_AUKF.py</code> are either very unstable or non-functioning. It can reflect the fact that my code is bad or wrong (which isn't unlikely) or that the data isn't one the author envisioned.
 
