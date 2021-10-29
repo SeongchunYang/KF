@@ -4,6 +4,8 @@
 
 import numpy as np
 from copy import copy, deepcopy
+import os; pjoin=os.path.join
+from KF.utils import init_log
 
 class stateKalmanFilter:
     '''
@@ -66,8 +68,7 @@ class stateKalmanFilter:
                 **{**kwargs,'past_p':p0}
             )
         except:
-            print('Initial parameter adjustment in state filter failed.')
-            raise
+            self._logger.exception('Initial parameter adjustment in state filter failed.')
 
     def iteration(self, i, x, past_p, **kwargs):
         '''
@@ -119,8 +120,7 @@ class stateKalmanFilter:
             if hasattr(self, 'adapt_noise') and callable(self.adapt_noise):
                 self.adapt_noise(i, x, **{**kwargs,'past_p':past_p})
         except:
-            print('{}th iteration in state filter threw an error.'.format(i))
-            raise
+            self._logger.exception('{}th iteration in state filter threw an error.'.format(i))
 
 
 class parameterKalmanFilter:
@@ -184,8 +184,7 @@ class parameterKalmanFilter:
                 **{**kwargs,'past_z':z0}
             )
         except:
-            print('Initial parameter adjustment in parameter filter failed.')
-            raise
+            self._logger.exception('Initial parameter adjustment in parameter filter failed.')
 
     def iteration(self, i, x, past_z, **kwargs):
         '''
@@ -236,8 +235,7 @@ class parameterKalmanFilter:
             if hasattr(self, 'adapt_noise') and callable(self.adapt_noise):
                 self.adapt_noise(i, x, **{**kwargs,'past_z':past_z})
         except:
-            print('{}th iteration in parameter filter threw an error.'.format(i))
-            raise
+            self._logger.exception('{}th iteration in parameter filter threw an error.'.format(i))
 
 class DualKalmanFilter:
     '''
@@ -247,6 +245,9 @@ class DualKalmanFilter:
     The code is meant to be filter agnostic. As such, one can use the this
     for a variety of filters pre-initialized for use in this class, as long
     as the base classes use the same naming scheme.
+    NOTE: All objects will print out information through logger. As such,
+    custom class which uses the filter objects should include a logger
+    named '_logger'.
 
     Parameters
     ----------
@@ -254,10 +255,13 @@ class DualKalmanFilter:
         state filter
     pKF     :   object
         parameter filter
+    path    :   str
+        working directory, used to save the logfile.
     '''
-    def __init__(self, sKF, pKF):
-        self.sKF    =   sKF
-        self.pKF    =   pKF
+    def __init__(self, sKF, pKF, path = None):
+        self.sKF        =   sKF
+        self.pKF        =   pKF
+        self._logger    =   init_log(path=path)
     
     def initiate(self):
         # Initiate - State Filter

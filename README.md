@@ -40,7 +40,7 @@ All filters are defined as classes that can be used together utilizing additions
 from KF.UKF import UnscentedKalmanFilter # only function that can be used as a standalone filter.
 from KF.AUKF import AdaptiveUnscentedKalmanFilter
 from KF.DKF import stateKalmanFilter, parameterKalmanFilter
-from KF.utils import MixedClassMeta
+from KF.utils import MixedClassMeta, init_log
 
 class sAUKF(
 	UnscentedKalmanFilter,
@@ -48,19 +48,23 @@ class sAUKF(
 	stateKalmanFilter,
 	metaclass=MixedClassMeta
 	):
-	def __init__(self,*args,**kwargs): pass
+	def __init__(self,*args,**kwargs):
+		self._logger = init_log()
 class pAUKF(
 	UnscentedKalmanFilter,
 	AdaptiveUnscentedKalmanFilter,
 	parameterKalmanFilter,
 	metaclass=MixedClassMeta
 	):
-	def __init__(self,*args,**kwargs): pass
+	def __init__(self,*args,**kwargs):
+		self._logger = init_log()
 stateAUKF = sAUKF(*args,**kwargs)
 parameterAUKF = pAUKF(*args,**kwargs)
 ```
 
-Note that the user is free to mix and match, take out the adaptive portion or use another adaptive filter in place. As can be seen in the above code, <code>UnscentedKalmanFilter</code> is the only base class that can be initialized as a standalone filter. The hierarchy of mixins are <code>class(1<2<3<...)</code>. As such, variables initialized in its base are available immediately to the next.
+The user is free to mix and match the filters by taking out the adaptive portion or using another adaptive filter in place. As can be seen in the above code, <code>UnscentedKalmanFilter</code> is the only base class that can be initialized as a standalone filter. The hierarchy of mixins are <code>class(1<2<3<...)</code>. As such, variables initialized in its base are available immediately to the next.
+
+Note that addition of the logger is not an option; one has to provide it to whichever custom class of mixin is created by the user. In order to save log separately from each class of custom fitler object, specify the filepath+filename by <code>path</code> argument to <code>init_log</code> function.
 
 
 ## System Requirements

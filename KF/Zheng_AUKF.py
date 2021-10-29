@@ -107,11 +107,11 @@ class AdaptiveUnscentedKalmanFilter:
         # psi
         self.psi = dot(dot(self.innovation.reshape(1,-1), self.IPxx_c_p), self.innovation.reshape(-1,1))
         if self.psi > self.chi_sq_threshold:
-            if 'i' in kwargs.keys():
-                self._adapted_idx[kwargs['i']] = 1
-                print('{}th iteration, psi threshold reached'.format(kwargs['i']))
+            if 'iter' in kwargs.keys():
+                self._adapted_idx[kwargs['iter']] = 1
+                self._logger.info('{}th iteration, psi threshold reached'.format(kwargs['iter']))
             else:
-                print('Psi threshold reached.')
+                self._logger.info('Psi threshold reached.')
             self.tune = max(self.tune0, (self.psi - self.a * self.chi_sq_threshold)/self.psi)
             self.adaptive_QR(x,**kwargs)
             self.correct_update(x)
